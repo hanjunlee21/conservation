@@ -7,6 +7,7 @@ import argparse
 import itertools
 import numpy as np
 import pandas as pd
+import importlib_resources
 from tqdm.auto import tqdm
 import multiprocessing as mp
 from Bio import SeqIO
@@ -227,14 +228,14 @@ def visualize_substitution_matrix(path, normalization='log2_obsexp', dpi=300):
     outputDir = os.path.dirname(path)
     filename_wo_ext = os.path.splitext(os.path.basename(path))[0]
     pdfPath = os.path.join(outputDir, f"{filename_wo_ext}.{normalization}.pdf")
-
-    from pathlib import Path
-
-    DATA_DIR = Path(__file__).resolve().parent / "lib"
-    tRNA_df = pd.read_csv(
-        DATA_DIR / "N34_modifications.tsv",
-        sep='\t', names=['amino_acid', 'codon', 'N34_modification'], index_col=1
-    )
+    
+    with importlib_resources.open_text("conservation.lib", "N34_modifications.tsv") as f:
+        tRNA_df = pd.read_csv(
+            f,
+            sep='\t',
+            names=['amino_acid', 'codon', 'N34_modification'],
+            index_col=1
+        )
 
     substitution_df = pd.read_csv(path, sep='\t', index_col=0)
 
