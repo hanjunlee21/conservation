@@ -153,26 +153,28 @@ def blastc_on_fasta_record(record, species_dict, aligner):
                     matrix.loc[idx, "count"] += 1
     return matrix
 
+def process_record(args):
+    record, species_dict, aligner = args
+    matrix = blastc_on_fasta_record(record, species_dict, aligner)
+    identity, non_identity = count_identity_nonidentity(matrix)
+    return {
+        'record': record.name,
+        'sequence': str(record.seq),
+        'substitution_matrix': matrix,
+        'identity': identity,
+        'non_identity': non_identity
+    }
+
 def blastc_fasta_onepass(fasta_path, species_dict, aligner, output_prefix, fdr_cutoff=None, conservedness_cutoff=None, num_workers=1, dpi=300):
     fasta = list(SeqIO.parse(fasta_path, 'fasta'))
-
-    def process_record(record):
-        matrix = blastc_on_fasta_record(record, species_dict, aligner)
-        identity, non_identity = count_identity_nonidentity(matrix)
-        return {
-            'record': record.name,
-            'sequence': str(record.seq),
-            'substitution_matrix': matrix,
-            'identity': identity,
-            'non_identity': non_identity
-        }
+    args_list = [(record, species_dict, aligner) for record in fasta]
 
     if num_workers > 1:
         with mp.Pool(num_workers) as pool:
-            results = list(tqdm(pool.imap(process_record, fasta), total=len(fasta), desc='BLAST-C + stats'))
+            results = list(tqdm(pool.imap(process_record, args_list), total=len(fasta), desc='BLAST-C + stats'))
     else:
-        results = [process_record(record) for record in tqdm(fasta, desc='BLAST-C + stats')]
-
+        results = [process_record(args) for args in tqdm(args_list, desc='BLAST-C + stats')]
+    
     all_matrices = [r['substitution_matrix'] for r in results]
     global_matrix = pd.concat(all_matrices).groupby(level=0).sum()
     global_identity, global_non_identity = count_identity_nonidentity(global_matrix)
