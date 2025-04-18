@@ -115,17 +115,27 @@ def plot_alignment_pdf(record_name, sequence, species_dict, aligner, output_dir,
 # === Statistical Analysis Function ===
 def blastc_on_fasta_record(record, species_dict, aligner):
     sequence = record.seq
+    species_list = list(species_dict.keys())
+
+    # Prepare codon substitution matrix index
     bases = ['A', 'C', 'G', 'T']
     codons = [a + b + c for a in bases for b in bases for c in bases]
     substitutions = [f"{c1}>{c2}" for c1 in codons for c2 in codons]
-    matrix = pd.DataFrame(0, index=substitutions, columns=["count"])
+    substitution_matrix = pd.DataFrame(0, index=substitutions, columns=["count"])
 
-    alignments, best_orfs = [], []
-    for org, orfs in species_dict.items():
+    alignments = []
+    best_orfs = []
+
+    # Align domain sequence against all species' CDSs
+    for org in species_list:
+        orfs = species_dict[org]
         best_score = 0
         best_orf = orfs[0]
         for orf in orfs:
-            score = aligner.score(sequence, orf.seq.translate())
+            try:
+                score = aligner.score(sequence, orf.seq.translate())
+            except Exception:
+                continue
             if score > best_score:
                 best_score = score
                 best_orf = orf
@@ -133,35 +143,40 @@ def blastc_on_fasta_record(record, species_dict, aligner):
         alignment = aligner.align(sequence, best_orf.seq.translate())[0]
         alignments.append(alignment)
 
-    species_list = list(species_dict.keys())
+    # Build alignment maps
     L = len(sequence)
-    fna_df = pd.DataFrame(columns=species_list, index=range(L))
-    faa_df = pd.DataFrame(columns=species_list, index=range(L))
+    aa_df = pd.DataFrame(index=range(L), columns=species_list)
+    codon_df = pd.DataFrame(index=range(L), columns=species_list)
 
-    for i, alignment in enumerate(alignments):
+    for i, (alignment, orf) in enumerate(zip(alignments, best_orfs)):
+        org = species_list[i]
         t_coords, q_coords = alignment.aligned
-        orf = best_orfs[i]
         for (t_start, t_end), (q_start, q_end) in zip(t_coords, q_coords):
             for t_pos, q_pos in zip(range(t_start, t_end), range(q_start, q_end)):
-                if 0 <= 3 * q_pos + 2 < len(orf.seq):
-                    codon = orf.seq[3 * q_pos : 3 * q_pos + 3]
+                codon_start = 3 * q_pos
+                codon_end = codon_start + 3
+                if codon_end <= len(orf.seq):
+                    codon = str(orf.seq[codon_start:codon_end])
                     try:
-                        aa = codon.translate()
-                        fna_df.at[t_pos, species_list[i]] = codon
-                        faa_df.at[t_pos, species_list[i]] = aa
+                        aa = str(orf.seq[codon_start:codon_end].translate())
+                        codon_df.at[t_pos, org] = codon
+                        aa_df.at[t_pos, org] = aa
                     except Exception:
-                        continue  # skip invalid codons
+                        continue
 
-    for i in range(L):
-        aa_row = faa_df.iloc[i]
+    # Count synonymous codon substitutions
+    for pos in range(L):
+        aa_row = aa_df.loc[pos]
+        codon_row = codon_df.loc[pos]
         if aa_row.notna().all() and aa_row.nunique() == 1:
-            codons_here = fna_df.iloc[i].dropna()
+            codons_here = codon_row.dropna().unique()
             if len(codons_here) > 1:
                 for a, b in itertools.permutations(codons_here, 2):
                     idx = f"{a}>{b}"
-                    if idx in matrix.index:
-                        matrix.loc[idx, "count"] += 1
-    return matrix
+                    if idx in substitution_matrix.index:
+                        substitution_matrix.loc[idx, "count"] += 1
+
+    return substitution_matrix
 
 def process_record(args):
     record, species_dict, aligner = args
