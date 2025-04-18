@@ -17,7 +17,7 @@ def conservation_parser():
         usage=textwrap.dedent(usage)
     )
 
-    parser.add_argument('--version', action='version', version=f'conservation {__version__}')
+    parser.add_argument('--version', '-v', action='version', version=f'conservation {__version__}')
     parser.add_argument('command', nargs='?', help='Subcommand to run')
 
     return parser
@@ -36,19 +36,26 @@ class MyParser(argparse.ArgumentParser):
 
 
 def main():
-    parser = conservation_parser()
-    args, remaining_args = parser.parse_known_args()
+    if len(sys.argv) > 1 and sys.argv[1] == 'codon':
+        # Shift sys.argv so codon_main sees the correct arguments
+        sys.argv = [sys.argv[0]] + sys.argv[2:]
+        codon_main()
+        return 0
 
-    if not args.command:
+    parser = conservation_parser()
+    args = parser.parse_args()
+
+    if args.command is None:
         parser.print_help()
         return 1
 
     if args.command == 'codon':
-        sys.argv = [sys.argv[0]] + remaining_args
-        codon_main()
+        # Should already be handled above
+        pass
     else:
         sys.stderr.write(f"Unknown command: {args.command}\n")
         parser.print_help()
         return 1
 
     return 0
+
