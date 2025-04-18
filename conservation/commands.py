@@ -17,7 +17,7 @@ def conservation_parser():
         usage=textwrap.dedent(usage)
     )
 
-    parser.add_argument('--version', '-v', action='version', version=f'conservation {__version__}')
+    parser.add_argument('-v', '--version', action='version', version=f'conservation {__version__}')
     parser.add_argument('command', nargs='?', help='Subcommand to run')
 
     return parser

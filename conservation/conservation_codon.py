@@ -20,14 +20,14 @@ import matplotlib.colors as mcolors
 
 # === Argument Parser ===
 def parse_args():
-    parser = argparse.ArgumentParser(description="Codon conservation analysis from Pfam domains and CDS sequences.")
-    parser.add_argument('--domain', '-d', required=True, help='FASTA file of domain sequences (e.g., Pfam)')
-    parser.add_argument('--cds', '-c', required=True, help='Comma-separated list of CDS fasta files for each organism')
-    parser.add_argument('--output', '-o', required=True, help='Output directory to store results')
-    parser.add_argument('--threads', '-t', type=int, default=1, help='Number of parallel threads (default: 1)')
-    parser.add_argument('--fdr', '-q', type=float, default=None, help='FDR cutoff (default: 0.05 / num_records)')
-    parser.add_argument('--conservedness', '-s', type=float, default=None, help='Identity ratio threshold (default: mean + 2*std)')
-    parser.add_argument('--dpi', '-r', type=int, default=300, help='DPI for all generated PDF files (default: 300)')
+    parser = argparse.ArgumentParser(prog="conservation codon", description="Codon conservation analysis from Pfam domains and CDS sequences.")
+    parser.add_argument('-d', '--domain', required=True, help='FASTA file of domain sequences (e.g., Pfam)')
+    parser.add_argument('-c', '--cds', required=True, help='Comma-separated list of CDS fasta files for each organism')
+    parser.add_argument('-o', '--output', required=True, help='Output directory to store results')
+    parser.add_argument('-t', '--threads', type=int, default=1, help='Number of parallel threads (default: 1)')
+    parser.add_argument('-q', '--fdr', type=float, default=None, help='FDR cutoff (default: 0.05 / num_records)')
+    parser.add_argument('-s', '--conservedness', type=float, default=None, help='Identity ratio threshold (default: mean + 2*std)')
+    parser.add_argument('-r', '--dpi', type=int, default=300, help='DPI for all generated PDF files (default: 300)')
     return parser.parse_args()
 
 # === Helper Functions ===
