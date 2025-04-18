@@ -136,21 +136,27 @@ def blastc_on_fasta_record(record, species_dict, aligner):
 
     for i, alignment in enumerate(alignments):
         t_coords, q_coords = alignment.aligned
+        orf = best_orfs[i]
         for (t_start, t_end), (q_start, q_end) in zip(t_coords, q_coords):
             for t_pos, q_pos in zip(range(t_start, t_end), range(q_start, q_end)):
-                orf = best_orfs[i]
-                codon = orf.seq[3*q_pos:3*q_pos+3]
-                aa = codon.translate()
-                fna_df.at[t_pos, species_list[i]] = codon
-                faa_df.at[t_pos, species_list[i]] = aa
+                if 0 <= 3 * q_pos + 2 < len(orf.seq):
+                    codon = orf.seq[3 * q_pos : 3 * q_pos + 3]
+                    try:
+                        aa = codon.translate()
+                        fna_df.at[t_pos, species_list[i]] = codon
+                        faa_df.at[t_pos, species_list[i]] = aa
+                    except Exception:
+                        continue  # skip invalid codons
 
     for i in range(L):
-        if faa_df.iloc[i].notna().all() and faa_df.iloc[i].nunique() == 1:
-            codons_here = fna_df.iloc[i]
-            for a, b in itertools.permutations(codons_here, 2):
-                idx = f"{a}>{b}"
-                if idx in matrix.index:
-                    matrix.loc[idx, "count"] += 1
+        aa_row = faa_df.iloc[i]
+        if aa_row.notna().all() and aa_row.nunique() == 1:
+            codons_here = fna_df.iloc[i].dropna()
+            if len(codons_here) > 1:
+                for a, b in itertools.permutations(codons_here, 2):
+                    idx = f"{a}>{b}"
+                    if idx in matrix.index:
+                        matrix.loc[idx, "count"] += 1
     return matrix
 
 def process_record(args):
@@ -219,10 +225,14 @@ def visualize_substitution_matrix(path, normalization='log2_obsexp', dpi=300):
     filename_wo_ext = os.path.splitext(os.path.basename(path))[0]
     pdfPath = os.path.join(outputDir, f"{filename_wo_ext}.{normalization}.pdf")
 
+    from pathlib import Path
+
+    DATA_DIR = Path(__file__).resolve().parent / "lib"
     tRNA_df = pd.read_csv(
-        '../lib/N34_modifications.tsv',
+        DATA_DIR / "N34_modifications.tsv",
         sep='\t', names=['amino_acid', 'codon', 'N34_modification'], index_col=1
     )
+
     substitution_df = pd.read_csv(path, sep='\t', index_col=0)
 
     codons = tRNA_df.index.tolist()
