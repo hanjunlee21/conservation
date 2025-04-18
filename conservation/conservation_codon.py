@@ -18,6 +18,9 @@ import matplotlib.patches as patches
 import matplotlib as mpl
 import matplotlib.colors as mcolors
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # === Argument Parser ===
 def parse_args():
     parser = argparse.ArgumentParser(prog="conservation codon", description="Codon conservation analysis from Pfam domains and CDS sequences.")
