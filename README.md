@@ -71,11 +71,11 @@ conservation/
 │   ├── __init__.py
 │   ├── commands.py
 │   ├── conservation_codon.py
-│   └── version.py
+│   ├── version.py
+│   └── lib/
+│   │   └── N34_modifications.tsv
 ├── bin/
 │   └── conservation
-├── lib/
-│   └── N34_modifications.tsv
 ├── README.md
 ├── setup.py
 ├── pyproject.toml
