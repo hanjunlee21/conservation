@@ -68,14 +68,14 @@ conservation codon \
 ```
 conservation/
 ├── conservation/
+├── ├── lib/
+│   ├── └── N34_modifications.tsv
 │   ├── __init__.py
 │   ├── commands.py
 │   ├── conservation_codon.py
 │   └── version.py
 ├── bin/
 │   └── conservation
-├── lib/
-│   └── N34_modifications.tsv
 ├── README.md
 ├── setup.py
 ├── pyproject.toml
