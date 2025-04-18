@@ -29,6 +29,7 @@ setup(
   ],
   python_requires='>=3.6',
   scripts=['bin/conservation'],
+  include_package_data=True,
   classifiers=[
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Science/Research',
