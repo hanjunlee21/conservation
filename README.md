@@ -19,6 +19,12 @@ You can install the package from PyPI:
 pip install conservation
 ```
 
+Or from Bioconda:
+
+```bash
+conda install -c bioconda conservation
+```
+
 Or install from source:
 
 ```bash
