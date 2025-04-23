@@ -23,7 +23,7 @@ pip install conservation
 Or from Bioconda:
 
 ```bash
-conda install -c bioconda conservation
+conda install bioconda:conservation
 ```
 
 Or install from source:
