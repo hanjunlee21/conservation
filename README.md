@@ -1,7 +1,7 @@
 # Conservation
 
 [![PyPI version](https://badge.fury.io/py/conservation.svg)](https://badge.fury.io/py/conservation)
-[![Conda version](https://anaconda.org/bioconda/conservation/badges/version.svg)
+[![Conda version](https://anaconda.org/bioconda/conservation/badges/version.svg)](https://anaconda.org/bioconda/conservation)
 
 **Conservation** is a Python package for evolutionary conservation analysis at the codon and amino acid level. It supports comparative analysis using Pfam domain sequences and CDS datasets across multiple species.
 
